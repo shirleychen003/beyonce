@@ -18,41 +18,64 @@ bibliography: references.bib
 #| warning: false
 #| message: false
 
-library(palmerpenguins)
-library(babynames)
-library(gh)
-library(here)
-library(httr)
-library(janitor)
-library(jsonlite)
-library(knitr)
-library(lubridate)
-library(pdftools)
-library(purrr)
-library(rvest)
-library(spotifyr)
-library(tesseract)
 library(tidyverse)
-library(usethis)
-library(xml2)
+library(kableExtra)
 ```
 
 
 # Introduction
 
+# Data
+
+@fig-beyond
+
 ```{r}
-NASA <- 
-  GET("https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&date=2024-02-28")
-
-content(NASA)
-
-content(NASA)$explanation
-
-knitr::include_graphics(content(NASA)$url)
-
+#| echo: false
+beyonce <-readRDS(here::here("data/raw_data/beyonce.rds"))
 ```
 
+```{r}
+#| label: fig-beyond
+#| fig-cap: Danceability of Beyonce albums over time
+#| echo: false
+beyonce <- as_tibble(beyonce)
 
+beyonce |>
+  filter(album_release_date_precision == "day") |>
+  mutate(album_release_date = ymd(album_release_date)) |>
+  ggplot(aes(
+    x = album_release_date,
+    y = danceability,
+    group = album_release_date
+  )) +
+  geom_boxplot() +
+  geom_jitter(alpha = 0.5, width = 0.3, height = 0) +
+  theme_minimal() +
+  labs(
+    x = "Album release date",
+    y = "Danceability")
+```
+
+@tbl-danceability
+
+```{r}
+#| label: tbl-danceability
+#| tbl-cap: Average danceability of each Beyonce album
+#| echo: false
+
+beyonce <- as_tibble(beyonce)
+
+beyonce |>
+  filter(album_release_date_precision == "day") |> 
+  mutate(album_release_date = ymd(album_release_date)) |>
+  summarize(ave_danceability = mean(danceability), .by = "album_name") |> 
+  knitr::kable(
+    col.names = c("Album", "Average danceability"),
+    digits = 3,
+    booktabs = TRUE,
+    linesep = ""
+  )
+```
 \newpage
 
 \appendix
